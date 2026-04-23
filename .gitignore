@@ -1,0 +1,7 @@
+TODO
+WARN
+tools/
+build/
+*.swp*
+*.o
+sdkconfig*
