@@ -7,12 +7,6 @@
 #define ADC_MODE_VDD ADC_READ_VDD
 #define ADC_MODE_TOUT ADC_READ_TOUT
 
-typedef enum {
-	ADCMAN_ZERO,
-	ADCMAN_POSITIVE,
-	ADCMAN_NEGATIVE
-} adcman_value_t;
-
 typedef struct {
 	uint16_t origin;
 	adc_config_t adc_conf;
@@ -24,6 +18,6 @@ status_t adcman_setdown(void);
 
 status_t adcman_calibrate(adcman_conf_t *conf);
 
-status_t adcman_measure(adcman_conf_t *conf, adcman_value_t *value);
+status_t adcman_measure(adcman_conf_t *conf, uint16_t *value);
 
 #endif

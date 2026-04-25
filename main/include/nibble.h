@@ -3,6 +3,7 @@
 
 #include "types.h"
 #include "adcman.h"
+#include "gpioman.h"
 
 void setdown(void);
 
