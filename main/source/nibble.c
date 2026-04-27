@@ -1,7 +1,4 @@
 #include "nibble.h"
-#include "freertos/FreeRTOS.h"
-#include "freertos/task.h"
-#include "freertos/queue.h"
 
 static xQueueHandle gpio_evt_queue = NULL;
 
