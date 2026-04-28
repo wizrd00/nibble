@@ -8,16 +8,13 @@
 #define ADC_MODE_TOUT ADC_READ_TOUT
 
 typedef struct {
-	uint16_t origin;
-	adc_config_t adc_conf;
+	adc_mode_t mode;
 } adcman_conf_t;
 
 status_t adcman_setup(adcman_conf_t *conf);
 
 status_t adcman_setdown(void);
 
-status_t adcman_calibrate(adcman_conf_t *conf);
-
-status_t adcman_measure(adcman_conf_t *conf, uint16_t *value);
+status_t adcman_measure(uint16_t *value);
 
 #endif

@@ -1,0 +1,11 @@
+#ifndef NIBBLE_HW504_H
+#define NIBBLE_HW504_H
+
+// Joystick Module HW-504
+
+#define JOYSTICK_ORIGIN_LEVEL 594
+#define JOYSTICK_MAX_LEVEL 1023
+#define JOYSTICK_MIN_LEVEL 9
+#define JOYSTICK_CLICK_LEVEL 0
+
+#endif

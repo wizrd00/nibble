@@ -1,15 +1,19 @@
 #ifndef NIBBLE_SSD1306_H
 #define NIBBLE_SSD1306_H
 
+// OLED Monitor Module SSD-1306 128x64 pixels Blue-Yellow
+
 #include <stdint.h>
 #include <stdbool.h>
 
 #define SCREEN_MAX_COMMAND_SIZE 0x06
 #define SCREEN_MAX_RATIO_SIZE 0x40
 #define SCREEN_PIXELS_SIZE 0x2000
-#define SCREEN_BUFFER_SIZE 0x400
+#define SCREEN_BUFFER_SIZE 0x80
 #define SCREEN_LENGTH_SIZE 0x80
 #define SCREEN_WIDTH_SIZE 0x40
+#define SCREEN_PAGE_LENGHT_SIZE 0x80
+#define SCREEN_PAGE_WIDTH_SIZE 0x08
 
 #define SCREEN_ADDRESS 0x3d
 
@@ -34,6 +38,9 @@
 #define SCREEN_COMMAND_DISPLAY_OFF 0xae
 #define SCREEN_COMMAND_DISPLAY_ON 0xaf
 
+#define SCREEN_COMMAND_SET_COLUMN 0x21
+#define SCREEN_COMMAND_SET_PAGE 0x22
+
 static inline void scrcmd_control_data(uint8_t *cmd, size_t *len)
 {
 	cmd[0] = (uint8_t) SCREEN_CONTROL_DATA;
@@ -53,7 +60,7 @@ static inline void scrcmd_device_setup(uint8_t *cmd, size_t *len, uint8_t ratio,
 	cmd[0] = (uint8_t) SCREEN_COMMAND_ADDRESSING_MODE;
 	cmd[1] = (uint8_t) 0x00;
 	cmd[2] = (uint8_t) SCREEN_COMMAND_MULTIPLEX_RATIO;
-	cmd[3] = (uint8_t) (ratio <= SCREEN_MAX_RATIO_SIZE) ? ratio - 1 : SCREEN_MAX_RATIO_SIZE - 1;
+	cmd[3] = ratio;
 	cmd[4] = (uint8_t) (x_remap) ? SCREEN_COMMAND_SEG_REMAP_ON : SCREEN_COMMAND_SEG_REMAP_OFF;
 	cmd[5] = (uint8_t) (y_remap) ? SCREEN_COMMAND_COM_REMAP_ON : SCREEN_COMMAND_COM_REMAP_OFF;
 	*len = 6;
@@ -64,6 +71,7 @@ static inline void scrcmd_contrast(uint8_t *cmd, size_t *len, uint8_t val)
 {
 	cmd[0] = (uint8_t) SCREEN_COMMAND_CONTRAST;
 	cmd[1] = val;
+	*len = 2
 	return;
 }
 
@@ -81,6 +89,32 @@ static inline void scrcmd_display_on(uint8_t *cmd, size_t *len, bool ram_content
 	return;
 }
 
-//TODO
+static inline void scrcmd_set_horizontal_range(uint8_t *cmd, size_t *len, uint8_t start_x, uint8_t end_x)
+{
+	cmd[0] = (uint8_t) SCREEN_COMMAND_SET_COLUMN;
+	cmd[1] = start_x;
+	cmd[2] = end_x;
+	*len = 3;
+	return;
+}
+
+static inline void scrcmd_set_vertical_range(uint8_t *cmd, size_t *len, uint8_t start_y, uint8_t end_y)
+{
+	cmd[0] = (uint8_t) SCREEN_COMMAND_SET_PAGE;
+	cmd[1] = start_y;
+	cmd[2] = end_y;
+	*len = 3;
+	return;
+}
+
+static inline void scrcmd_encode_page(uint8_t **page, uint8_t page_len, uint8_t *buf, size_t *buf_len)
+{
+	
+	for (int i = 0; i < SCREEN_PAGE_WIDTH_SIZE; i++)
+		for (int j = 0; j < page_len; j++)
+			buf[j] |= page[i][j] << (SCREEN_PAGE_WIDTH_SIZE - i - 1);
+	*buf_len = page_len;
+	return;
+}
 
 #endif

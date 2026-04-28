@@ -4,9 +4,7 @@
 #include "types.h"
 #include "adcman.h"
 #include "gpioman.h"
-#include "freertos/FreeRTOS.h"
-#include "freertos/task.h"
-#include "freertos/queue.h"
+#include "joyman.h"
 
 void setdown(void);
 
