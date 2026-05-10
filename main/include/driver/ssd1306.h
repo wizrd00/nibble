@@ -1,7 +1,15 @@
 #ifndef NIBBLE_SSD1306_H
 #define NIBBLE_SSD1306_H
 
-// OLED Monitor Module SSD-1306 128x64 pixels Blue-Yellow
+// OLED Monitor Module SSD-1306 128x64 pixels
+
+/*
+** monman config format
+** +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+** |   mux ratio   |   seg remap   |   com remap   |
+** +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+** size = 3 * sizeof(uint8_t);
+*/
 
 #include <stdint.h>
 #include <stdbool.h>
