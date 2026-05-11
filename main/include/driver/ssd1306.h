@@ -5,19 +5,15 @@
 
 /*
 ** monman config format
-** +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-** |   mux ratio   |   seg remap   |   com remap   |
-** +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+** +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
+** |   mux ratio (15-63)   |   seg remap (0 or 1)  |   com remap (0 or 1)  |
+** +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
 ** size = 3 * sizeof(uint8_t);
 */
 
-#include <stdint.h>
-#include <stdbool.h>
+#include "types.h"
+#include "i2cman.h"
 
-#define SCREEN_MAX_COMMAND_SIZE 0x06
-#define SCREEN_MAX_RATIO_SIZE 0x40
-#define SCREEN_PIXELS_SIZE 0x2000
-#define SCREEN_BUFFER_SIZE 0x80
 #define SCREEN_LENGTH_SIZE 0x80
 #define SCREEN_WIDTH_SIZE 0x40
 #define SCREEN_PAGE_LENGHT_SIZE 0x80
@@ -28,16 +24,24 @@
 #define SCREEN_CONTROL_DATA 0x00
 #define SCREEN_CONTROL_COMMAND 0x80
 
+#define SCREEN_COMMAND_NULL 0xe3
+
+#define SCREEN_COMMAND_MULTIPLEX_RATIO 0xa8
+#define SCREEN_COMMAND_MIN_MULTIPLEX_RATIO 0x0f
+#define SCREEN_COMMAND_MAX_MULTIPLEX_RATIO 0x3f
+
 #define SCREEN_COMMAND_ADDRESSING_MODE 0x20
+#define SCREEN_COMMAND_HORIZONTAL_ADDRESSING_MODE 0x00
+
 #define SCREEN_COMMAND_SEG_REMAP_OFF 0xa0
 #define SCREEN_COMMAND_SEG_REMAP_ON 0xa1
-#define SCREEN_COMMAND_COM_REMAP_OFF 0xc0
-#define SCREEN_COMMAND_COM_REMAP_ON 0xc8
-#define SCREEN_COMMAND_MULTIPLEX_RATIO 0xa8
+#define SCREEN_COMMAND_COM_HARDWARE_CONFIG 0xda
+#define SCREEN_COMMAND_COM_REMAP_OFF 0x32
+#define SCREEN_COMMAND_COM_REMAP_ON 0x12
 
-#define SCREEN_COMMAND_ADDRESSING_MODE 0x20
-
-#define SCREEN_COMMAND_CONTRAST 0x81
+#define SCREEN_COMMAND_CONTRAST_SETTING 0x81
+#define SCREEN_COMMAND_MIN_CONTRAST 0x01
+#define SCREEN_COMMAND_MAX_CONTRAST 0xff
 
 #define SCREEN_COMMAND_ENTIRE_DISPLAY_ON_WITH_RAM 0xa4
 #define SCREEN_COMMAND_ENTIRE_DISPLAY_ON_WITHOUT_RAM 0xa5
@@ -49,71 +53,30 @@
 #define SCREEN_COMMAND_SET_COLUMN 0x21
 #define SCREEN_COMMAND_SET_PAGE 0x22
 
-static inline void scrcmd_control_data(uint8_t *cmd, size_t *len)
-{
-	cmd[0] = (uint8_t) SCREEN_CONTROL_DATA;
-	*len = 1;
-	return;
-}
+#define SCREEN_COMMAND_PUMP_CHARGE_SETTING 0x8d
+#define SCREEN_COMMAND_PUMP_CHARGE_ON 0x14
+#define SCREEN_COMMAND_PUMP_CHARGE_OFF 0x10
 
-static inline void scrcmd_control_command(uint8_t *cmd, size_t *len)
-{
-	cmd[0] = (uint8_t) SCREEN_CONTROL_COMMAND;
-	*len = 1;
-	return;
-}
+#define CONFIG_COMMAND_SIZE 0x0d
 
-static inline void scrcmd_device_setup(uint8_t *cmd, size_t *len, uint8_t ratio, bool x_remap, bool y_remap)
-{
-	cmd[0] = (uint8_t) SCREEN_COMMAND_ADDRESSING_MODE;
-	cmd[1] = (uint8_t) 0x00;
-	cmd[2] = (uint8_t) SCREEN_COMMAND_MULTIPLEX_RATIO;
-	cmd[3] = ratio;
-	cmd[4] = (uint8_t) (x_remap) ? SCREEN_COMMAND_SEG_REMAP_ON : SCREEN_COMMAND_SEG_REMAP_OFF;
-	cmd[5] = (uint8_t) (y_remap) ? SCREEN_COMMAND_COM_REMAP_ON : SCREEN_COMMAND_COM_REMAP_OFF;
-	*len = 6;
-	return;
-}
+#define CHECK_BUS_STAT(val, ...)\
+	do {if (val != NIBBLE_SUCCESS) {ESP_LOGE(LOGTAG, __VA_ARGS__); return _stat = MONITOR_BUS_FAILURE;}} while (0)
 
-static inline void scrcmd_contrast(uint8_t *cmd, size_t *len, uint8_t val)
-{
-	cmd[0] = (uint8_t) SCREEN_COMMAND_CONTRAST;
-	cmd[1] = val;
-	*len = 2
-	return;
-}
+monitor_status_t monitor_driver_setup(void);
 
-static inline void scrcmd_display_off(uint8_t *cmd, size_t *len)
-{
-	cmd[0] = (uint8_t) SCREEN_COMMAND_DISPLAY_OFF;
-	*len = 1;
-	return;
-}
+monitor_status_t monitor_driver_config(uint8_t *conf);
 
-static inline void scrcmd_display_on(uint8_t *cmd, size_t *len, bool ram_content)
-{
-	cmd[0] = (uint8_t) (ram_content) ? SCREEN_COMMAND_DISPLAY_ON_WITH_RAM : SCREEN_COMMAND_DISPLAY_ON_WITHOUT_RAM;
-	*len = 1;
-	return;
-}
+monitor_status_t monitor_driver_display_on(void);
 
-static inline void scrcmd_set_horizontal_range(uint8_t *cmd, size_t *len, uint8_t start_x, uint8_t end_x)
-{
-	cmd[0] = (uint8_t) SCREEN_COMMAND_SET_COLUMN;
-	cmd[1] = start_x;
-	cmd[2] = end_x;
-	*len = 3;
-	return;
-}
+monitor_status_t monitor_driver_display_off(void);
 
-static inline void scrcmd_set_vertical_range(uint8_t *cmd, size_t *len, uint8_t start_y, uint8_t end_y)
-{
-	cmd[0] = (uint8_t) SCREEN_COMMAND_SET_PAGE;
-	cmd[1] = start_y;
-	cmd[2] = end_y;
-	*len = 3;
-	return;
-}
+monitor_status_t monitor_driver_sleep(void);
+
+monitor_status_t monitor_driver_set_contrast(uint8_t value);
+
+monitor_status_t monitor_driver_display(uint8_t **matrix, int start_seg, int end_seg, int start_com, int end_com);
+
+monitor_status_t monitor_driver_set_pixel(uint8_t pixel, int pixel_x, int pixel_y);
 
 static inline void scrcmd_encode_page(uint8_t **page, uint8_t page_len, uint8_t *buf, size_t *buf_len)
 {

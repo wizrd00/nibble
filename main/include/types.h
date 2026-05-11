@@ -93,4 +93,16 @@ typedef enum {
 	NIBBLE_I2C_RECV_FAILURE
 } status_t;
 
+typedef enum {
+	MONITOR_SUCCESS,
+	MONITOR_FAILURE
+} monitor_status_t;
+
+typedef struct {
+	uint8_t **floor_mx;
+	uint8_t **float_mx;
+	size_t len;
+	size_t wid;
+} matrix_t;
+
 #endif
