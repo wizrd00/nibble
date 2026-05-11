@@ -28,6 +28,15 @@ void app_main(void)
 	};
 	int joystick_pos;
 	int button_pos;
+	i2cman_conf_t i2c_conf = {
+		.sda_gpio_num = GPIO_NUM_5,
+		.scl_gpio_num = GPIO_NUM_4,
+		.clock_tick = 300
+	};
+	uint8_t data[4] = {63, 0, 0, 100};
+	TRY_MONITOR(monitor_driver_setup(&i2c_conf), "driver_setup() failed");
+	TRY_MONITOR(monitor_driver_config(data), "driver_config() failed");
+	TRY_MONITOR(monitor_driver_display_on(), "driver_display_on() failed");
 	TRY(adcman_setup(&adc_conf), "adcman_setup() failed");
 	TRY(gpioman_setup(&gpio_conf), "gpioman_setup() failed");
 	TRY(gpioman_config_pin(&button), "gpioman_config_pin() failed");

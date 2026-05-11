@@ -10,8 +10,8 @@ typedef struct {
 	size_t size;
 } monman_conf_t;
 
-status_t monman_setup(monman_conf_t *conf, matrix_t *mtx);
+status_t monman_setup(monman_conf_t *conf);
 
-status_t monman_setdown(matrix_t *mtx);
+status_t monman_setdown(void);
 
 #endif

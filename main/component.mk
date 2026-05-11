@@ -1,1 +1,1 @@
-COMPONENT_SRCDIRS := source
+COMPONENT_SRCDIRS := source source/driver

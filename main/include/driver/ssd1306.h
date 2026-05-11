@@ -13,6 +13,8 @@
 
 #include "types.h"
 #include "i2cman.h"
+#include <stdlib.h>
+#include <string.h>
 
 #define SCREEN_LENGTH_SIZE 0x80
 #define SCREEN_WIDTH_SIZE 0x40
@@ -25,7 +27,7 @@
 #define SCREEN_START_COLUMN 0x00
 #define SCREEN_END_COLUMN 0x7f
 
-#define SCREEN_ADDRESS 0x3d
+#define SCREEN_ADDRESS 0x3c
 
 #define SCREEN_CONTROL_DATA 0x00
 #define SCREEN_CONTROL_COMMAND 0x80
@@ -74,6 +76,9 @@
 
 #define CHECK_BUS_STAT(val, ...)\
 	do {if (val != NIBBLE_SUCCESS) {ESP_LOGE(LOGTAG, __VA_ARGS__); ESP_LOGE(LOGTAG, "status code of failure = %d", val); return _stat = MONITOR_BUS_FAILURE;}} while (0)
+
+#define CHECK_BUS_STAT_FREE(val, ptr, ...)\
+	do {if (val != NIBBLE_SUCCESS) {ESP_LOGE(LOGTAG, __VA_ARGS__); ESP_LOGE(LOGTAG, "status code of failure = %d", val); free((void *) ptr); ptr = NULL; return _stat = MONITOR_BUS_FAILURE;}} while (0)
 
 monitor_status_t monitor_driver_setup(i2cman_conf_t *i2cman_conf);
 

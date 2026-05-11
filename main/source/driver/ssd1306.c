@@ -121,10 +121,14 @@ monitor_status_t monitor_driver_display(uint8_t **matrix, int start_col, int end
 	cmd[6] = (uint8_t) end_page;
 	CHECK_BUS_STAT(i2cman_send((int8_t) SCREEN_ADDRESS, (void *) cmd, (size_t) DISPLAY_COMMAND_SIZE, true, bus_timeout), "i2cman_send() failed");
 	size_t buf_len = (size_t) (PAGE_LENGTH(start_col, end_col) + 1);
+	uint8_t *buf = (uint8_t *) malloc(buf_len);
+	if (buf == NULL)
+		return _stat = MONITOR_MEMORY_FAILURE;
 	for (int i = 0; i < PAGE_COUNT(start_page, end_page); i++) {
-		uint8_t buf[buf_len] = {(uint8_t) SCREEN_CONTROL_DATA, 0};
-		encode_page(matrix[i], PAGE_LENGTH(start_col, end_col), buf + 1);
-		CHECK_BUS_STAT(i2cman_send((int8_t) SCREEN_ADDRESS, (void *) buf, buf_len, true, bus_timeout), "i2cman_send() failed");
+		memset(buf, 0, buf_len);
+		encode_page(matrix + i * SCREEN_PAGE_WIDTH_SIZE, PAGE_LENGTH(start_col, end_col), buf + 1);
+		CHECK_BUS_STAT_FREE(i2cman_send((int8_t) SCREEN_ADDRESS, (void *) buf, buf_len, true, bus_timeout), buf, "i2cman_send() failed");
 	}
+	free((void *) buf);
 	return _stat;
 }
