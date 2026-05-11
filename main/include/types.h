@@ -1,6 +1,7 @@
 #ifndef RAVEN_TYPES_H
 #define RAVEN_TYPES_H
 
+#include "FreeRTOS.h"
 #include "esp_log.h"
 #include "esp_err.h"
 #include <stddef.h>
@@ -95,14 +96,17 @@ typedef enum {
 
 typedef enum {
 	MONITOR_SUCCESS,
-	MONITOR_FAILURE
+	MONITOR_FAILURE,
+	MONITOR_INVALID_MULTIPLEX_RATIO,
+	MONITOR_INVALID_SEG_REMAP_BOOL,
+	MONITOR_INVALID_COM_REMAP_BOOL,
+	MONITOR_INVALID_CONTRAST_VALUE,
+	MONITOR_INVALID_START_END_COLUMN_COMBINATION,
+	MONITOR_INVALID_START_COLUMN,
+	MONITOR_INVALID_END_COLUMN,
+	MONITOR_INVALID_START_END_PAGE_COMBINATION,
+	MONITOR_INVALID_START_PAGE,
+	MONITOR_INVALID_END_PAGE
 } monitor_status_t;
-
-typedef struct {
-	uint8_t **floor_mx;
-	uint8_t **float_mx;
-	size_t len;
-	size_t wid;
-} matrix_t;
 
 #endif

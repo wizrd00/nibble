@@ -5,10 +5,10 @@
 
 /*
 ** monman config format
-** +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
-** |   mux ratio (15-63)   |   seg remap (0 or 1)  |   com remap (0 or 1)  |
-** +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
-** size = 3 * sizeof(uint8_t);
+** +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
+** |   mux ratio (15-63)   |   seg remap (0 or 1)  |   com remap (0 or 1)  |   bus timeout (Tick)  |
+** +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
+** size = 4 * sizeof(uint8_t);
 */
 
 #include "types.h"
@@ -16,8 +16,14 @@
 
 #define SCREEN_LENGTH_SIZE 0x80
 #define SCREEN_WIDTH_SIZE 0x40
-#define SCREEN_PAGE_LENGHT_SIZE 0x80
+#define SCREEN_PAGE_LENGTH_SIZE 0x80
 #define SCREEN_PAGE_WIDTH_SIZE 0x08
+#define SCREEN_PAGE_COUNT 0x08
+#define SCREEN_START_PAGE 0x00
+#define SCREEN_END_PAGE 0x07
+#define SCREEN_COLUMN_COUNT 0x80
+#define SCREEN_START_COLUMN 0x00
+#define SCREEN_END_COLUMN 0x7f
 
 #define SCREEN_ADDRESS 0x3d
 
@@ -57,12 +63,21 @@
 #define SCREEN_COMMAND_PUMP_CHARGE_ON 0x14
 #define SCREEN_COMMAND_PUMP_CHARGE_OFF 0x10
 
-#define CONFIG_COMMAND_SIZE 0x0d
+#define CONFIG_COMMAND_SIZE 0x0e
+#define DISPLAY_ON_COMMAND_SIZE 0x02
+#define DISPLAY_OFF_COMMAND_SIZE 0x02
+#define SET_CONTRAST_COMMAND_SIZE 0x03
+#define DISPLAY_COMMAND_SIZE 0x07
+
+#define PAGE_COUNT(start, end) (end - start + 1)
+#define PAGE_LENGTH(start, end) (end - start + 1)
 
 #define CHECK_BUS_STAT(val, ...)\
-	do {if (val != NIBBLE_SUCCESS) {ESP_LOGE(LOGTAG, __VA_ARGS__); return _stat = MONITOR_BUS_FAILURE;}} while (0)
+	do {if (val != NIBBLE_SUCCESS) {ESP_LOGE(LOGTAG, __VA_ARGS__); ESP_LOGE(LOGTAG, "status code of failure = %d", val); return _stat = MONITOR_BUS_FAILURE;}} while (0)
 
-monitor_status_t monitor_driver_setup(void);
+monitor_status_t monitor_driver_setup(i2cman_conf_t *i2cman_conf);
+
+monitor_status_t monitor_driver_setdown(void);
 
 monitor_status_t monitor_driver_config(uint8_t *conf);
 
@@ -74,18 +89,6 @@ monitor_status_t monitor_driver_sleep(void);
 
 monitor_status_t monitor_driver_set_contrast(uint8_t value);
 
-monitor_status_t monitor_driver_display(uint8_t **matrix, int start_seg, int end_seg, int start_com, int end_com);
-
-monitor_status_t monitor_driver_set_pixel(uint8_t pixel, int pixel_x, int pixel_y);
-
-static inline void scrcmd_encode_page(uint8_t **page, uint8_t page_len, uint8_t *buf, size_t *buf_len)
-{
-	
-	for (int i = 0; i < SCREEN_PAGE_WIDTH_SIZE; i++)
-		for (int j = 0; j < page_len; j++)
-			buf[j] |= page[i][j] << (SCREEN_PAGE_WIDTH_SIZE - i - 1);
-	*buf_len = page_len;
-	return;
-}
+monitor_status_t monitor_driver_display(uint8_t **matrix, int start_col, int end_col, int start_page, int end_page);
 
 #endif
