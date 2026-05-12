@@ -4,8 +4,8 @@
 #include "types.h"
 #include "driver/i2c.h"
 
-#define I2CMAN_SEND 0x00
-#define I2CMAN_RECV 0x01
+#define I2CMAN_SEND I2C_MASTER_WRITE
+#define I2CMAN_RECV I2C_MASTER_READ
 #define I2CMAN_PORT I2C_NUM_0
 #define I2CMAN_MODE I2C_MODE_MASTER
 #define I2CMAN_ACKV I2C_MASTER_LAST_NACK
